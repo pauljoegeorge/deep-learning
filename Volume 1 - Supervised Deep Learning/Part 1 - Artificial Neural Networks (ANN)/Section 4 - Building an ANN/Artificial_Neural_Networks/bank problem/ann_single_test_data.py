@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# -*- coding: utf-8 -*-
+
 # Artificial Neural Network
 
 # Installing Theano
@@ -22,6 +24,8 @@ import pandas as pd
 dataset = pd.read_csv('Churn_Modelling.csv')
 X = dataset.iloc[:, 3:13].values #creditscore ...estimated salary
 y = dataset.iloc[:, 13].values
+np.r_[X, [[600, 'France', 'Male', 40, 3, 60000, 2, 1, 1, 50000]]]
+
 
 """# Encoding categorical data"""
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
@@ -33,7 +37,12 @@ onehotencoder = OneHotEncoder(categorical_features = [1]) #dummy variables for c
 X = onehotencoder.fit_transform(X).toarray()
 # now there are 3 dummy variables, remove one dummy variable to avoid dummy variable trap ( so removing index 1 )
 X = X[:, 1:]
-
+X_new = 0
+for i in range(len(X)):
+    if X[i][2] == 600 and X[i][4] == 40:
+        X_new = np.array([X[i]])
+        
+    
 """# Splitting the dataset into the Training set and Test set"""
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
@@ -44,7 +53,7 @@ from sklearn.preprocessing import StandardScaler
 sc = StandardScaler()
 X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
-
+X_new = sc.transform(X_new)
 """
 # Making ANN
     - kernel_initializer = dummy weight to hidden layer
@@ -80,7 +89,8 @@ classifier.fit(X_train, y_train, batch_size=10, epochs=100)
 # Predicting the Test set results
 y_pred = classifier.predict(X_test) #y_pred => probability to leave the bank
 y_pred = (y_pred > 0.5) # true if y_pred > 0.5
-
+y_new_customer_pred = classifier.predict(X_new)
+y_new_customer_pred = (y_new_customer_pred > 0.5)
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
 cm = confusion_matrix(y_test, y_pred)

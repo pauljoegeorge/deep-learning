@@ -54,13 +54,18 @@ X_test = sc.transform(X_test)
 import keras
 from keras.models import Sequential # To initialize ANN
 from keras.layers import Dense  # To create layers
+from keras.layers import Dropout # applied to nuerons 
 
 #Initializing ANN
 classifier = Sequential()
 # Adding first input layer and hidden layer
 classifier.add(Dense(6, activation="relu", kernel_initializer='uniform'))
+# Adding dropout
+classifier.add(Dropout(rate = 0.1)) # 0.1 means 10% neurons will be deleted. 0.1 can be changed to any other values
 # Adding the second hidden layer
 classifier.add(Dense(6, activation="relu", kernel_initializer='uniform'))
+# Adding dropout
+classifier.add(Dropout(rate = 0.1))
 # Adding output layer
 classifier.add(Dense(1, activation="sigmoid", kernel_initializer='uniform'))  #activation softmax  will be used ,if more than 2 categories.
 
@@ -69,7 +74,6 @@ classifier.add(Dense(1, activation="sigmoid", kernel_initializer='uniform'))  #a
    # if output layer has more than 2 output, categorical_crossentropy 
    # accuracy is the expected difference in errror rate
 classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=["accuracy"])
-
 
 """
 Fitting ANN to the Training set
@@ -84,3 +88,29 @@ y_pred = (y_pred > 0.5) # true if y_pred > 0.5
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
 cm = confusion_matrix(y_test, y_pred)
+"""
+Evaluating ANN
+  - K-fold will train ANN 10 times. 
+  - will return 10 accuracies. 
+"""
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import cross_val_score
+def build_classifier():
+    classifier = Sequential()
+    classifier.add(Dense(6, activation="relu", kernel_initializer='uniform'))
+    classifier.add(Dense(6, activation="relu", kernel_initializer='uniform'))
+    classifier.add(Dense(1, activation="sigmoid", kernel_initializer='uniform'))
+    classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=["accuracy"])
+    return classifier
+
+classifier = KerasClassifier(build_fn = build_classifier, batch_size=10, epochs=100)
+accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10, n_jobs = -1)
+mean = accuracies.mean()
+variance = accuracies.std()
+
+"""
+Improving ANN
+  - method of improving accuracy. 
+  - dropout regularization - to reduce overfitting if needed ( when variance is a higher value)
+  
+"""
